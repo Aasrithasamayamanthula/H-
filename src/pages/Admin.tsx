@@ -27,6 +27,8 @@ interface Appointment {
   reason: string;
   status: string;
   createdAt: any;
+  payment?: string; // Add payment field
+  paymentScreenshot?: string; // Add payment screenshot field
 }
 
 interface Message {
@@ -644,13 +646,24 @@ Customer Service Team
                     <CardContent>
                       <div className="space-y-4">
                         {appointments.slice(0, 10).map((appointment) => (
-                          <div key={appointment.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                          <div key={appointment.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 rounded-lg">
                             <div>
                               <h3 className="font-semibold">{appointment.name}</h3>
                               <p className="text-sm text-slate-600">{appointment.department} - {appointment.date} at {appointment.time}</p>
                               <p className="text-sm text-slate-500">{appointment.email} | {appointment.phone}</p>
+                              <p className="text-xs text-slate-500 mt-1">Payment: <span className="font-semibold text-teal-700">{appointment.payment || 'N/A'}</span></p>
+                              {appointment.paymentScreenshot && (
+                                <a
+                                  href={appointment.paymentScreenshot}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-block mt-2 text-xs text-blue-600 underline hover:text-blue-800"
+                                >
+                                  View Payment Screenshot
+                                </a>
+                              )}
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-2 mt-2 md:mt-0">
                               <div className="flex space-x-1">
                                 <Button
                                   size="sm"

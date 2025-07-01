@@ -27,6 +27,18 @@ const timeSlots = [
   '4:00 PM', '4:30 PM'
 ];
 
+const countryCodes = [
+  { code: '+91', label: 'India (+91)' },
+  { code: '+1', label: 'USA (+1)' },
+  { code: '+44', label: 'UK (+44)' },
+  { code: '+61', label: 'Australia (+61)' },
+  { code: '+971', label: 'UAE (+971)' },
+  { code: '+81', label: 'Japan (+81)' },
+  { code: '+49', label: 'Germany (+49)' },
+  { code: '+86', label: 'China (+86)' },
+  // Add more as needed
+];
+
 const AppointmentBooking = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -35,42 +47,55 @@ const AppointmentBooking = () => {
     department: '',
     date: '',
     time: '',
-    reason: ''
+    reason: '',
+    payment: '',
+    paymentScreenshot: '' // Add payment screenshot URL
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileUploading, setFileUploading] = useState(false);
+  const [countryCode, setCountryCode] = useState('+91');
   const { toast } = useToast();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+    let paymentScreenshotUrl = '';
     try {
-      console.log('Submitting appointment:', formData);
-      
+      if (formData.payment === 'Pay Now' && file) {
+        setFileUploading(true);
+        // Upload to Cloudinary
+        const { uploadToCloudinary } = await import('@/lib/cloudinary');
+        paymentScreenshotUrl = await uploadToCloudinary(file);
+        setFileUploading(false);
+      }
       // Save to Firestore
       const appointmentData = {
         ...formData,
+        phone: countryCode + formData.phone,
+        paymentScreenshot: paymentScreenshotUrl,
         status: 'pending',
+        payment: formData.payment || 'Pay at Hospital',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
-      
       const docRef = await addDoc(collection(db, 'appointments'), appointmentData);
-      console.log('Appointment saved with ID:', docRef.id);
-      
       setIsSuccess(true);
-      
       toast({
         title: "Appointment Booked Successfully!",
         description: "We'll send you a confirmation email shortly.",
       });
-
-      // Reset form after successful submission
       setTimeout(() => {
         setIsSuccess(false);
         setFormData({
@@ -80,12 +105,13 @@ const AppointmentBooking = () => {
           department: '',
           date: '',
           time: '',
-          reason: ''
+          reason: '',
+          payment: '',
+          paymentScreenshot: ''
         });
+        setFile(null);
       }, 3000);
-
     } catch (error) {
-      console.error('Error booking appointment:', error);
       toast({
         title: "Booking Failed",
         description: `Error: ${error instanceof Error ? error.message : 'Please try again or contact us directly.'}`,
@@ -93,6 +119,7 @@ const AppointmentBooking = () => {
       });
     } finally {
       setIsSubmitting(false);
+      setFileUploading(false);
     }
   };
 
@@ -120,6 +147,7 @@ const AppointmentBooking = () => {
                 <p><strong>Department:</strong> {formData.department}</p>
                 <p><strong>Date:</strong> {formData.date}</p>
                 <p><strong>Time:</strong> {formData.time}</p>
+                <p><strong>Payment:</strong> {formData.payment || 'Pay at Hospital'}</p>
               </div>
             </div>
           </motion.div>
@@ -187,14 +215,25 @@ const AppointmentBooking = () => {
                       <Phone className="w-4 h-4 mr-2 text-teal-600" />
                       Phone Number *
                     </label>
-                    <Input
-                      required
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="Enter your phone number"
-                      className="h-12"
-                    />
+                    <div className="flex">
+                      <select
+                        value={countryCode}
+                        onChange={e => setCountryCode(e.target.value)}
+                        className="h-12 border border-gray-300 rounded-l-md px-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                      >
+                        {countryCodes.map(opt => (
+                          <option key={opt.code} value={opt.code}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <Input
+                        required
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        placeholder="Enter your phone number"
+                        className="h-12 rounded-l-none"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -275,6 +314,49 @@ const AppointmentBooking = () => {
                     rows={4}
                     className="resize-none"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">
+                    Payment Option *
+                  </label>
+                  <select
+                    required
+                    value={formData.payment}
+                    onChange={e => handleInputChange('payment', e.target.value)}
+                    className="h-12 w-full border border-gray-300 rounded-md px-3 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="">Select payment option</option>
+                    <option value="Pay Now">Pay Now (Online)</option>
+                    <option value="Pay at Hospital">Pay at Hospital</option>
+                  </select>
+                  {/* QR code for Pay Now */}
+                  {formData.payment === 'Pay Now' && (
+                    <div className="mt-4 flex flex-col items-center">
+                      <img
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=7981210978@ybl&pn=Patient%20Payment&am=&cu=INR"
+                        alt="UPI QR Code"
+                        className="w-40 h-40 border rounded-lg mb-2"
+                      />
+                      <div className="text-center text-sm text-slate-700">
+                        <div className="font-semibold">Scan & Pay via UPI</div>
+                        <div>UPI ID: <span className="font-mono">7981210978@ybl</span></div>
+                        <div className="text-xs text-slate-500">(PhonePe, Google Pay, Paytm, etc.)</div>
+                      </div>
+                      <div className="mt-4 w-full">
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Upload Payment Screenshot *</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="block w-full border border-gray-300 rounded-md px-3 py-2"
+                          required={formData.payment === 'Pay Now'}
+                        />
+                        {fileUploading && <div className="text-xs text-teal-600 mt-1">Uploading screenshot...</div>}
+                        {file && <div className="text-xs text-slate-600 mt-1">Selected: {file.name}</div>}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit Button */}

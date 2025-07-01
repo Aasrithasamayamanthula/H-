@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
@@ -17,8 +16,21 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+  const [countryCode, setCountryCode] = useState('+91');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+
+  const countryCodes = [
+    { code: '+91', label: 'India (+91)' },
+    { code: '+1', label: 'USA (+1)' },
+    { code: '+44', label: 'UK (+44)' },
+    { code: '+61', label: 'Australia (+61)' },
+    { code: '+971', label: 'UAE (+971)' },
+    { code: '+81', label: 'Japan (+81)' },
+    { code: '+49', label: 'Germany (+49)' },
+    { code: '+86', label: 'China (+86)' },
+    // Add more as needed
+  ];
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -34,6 +46,7 @@ const Contact = () => {
       // Save to Firestore
       const messageData = {
         ...formData,
+        phone: countryCode + formData.phone,
         status: 'unread',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -232,14 +245,25 @@ const Contact = () => {
                     <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1">
                       Phone
                     </label>
-                    <input
-                      type="tel"
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    />
+                    <div className="flex">
+                      <select
+                        value={countryCode}
+                        onChange={e => setCountryCode(e.target.value)}
+                        className="h-10 border border-gray-300 rounded-l-md px-2 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                      >
+                        {countryCodes.map(opt => (
+                          <option key={opt.code} value={opt.code}>{opt.label}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-r-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent rounded-l-none"
+                      />
+                    </div>
                   </div>
                   <div>
                     <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-1">
