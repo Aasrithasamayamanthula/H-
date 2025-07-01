@@ -1,12 +1,25 @@
-
 import Navigation from '@/components/Navigation';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, FileText, User, Clock, Heart, Bell } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const PatientPortal = () => {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (sessionStorage.getItem('patient_logged_in') === 'true') {
+      setLoggedIn(true);
+    } else {
+      navigate('/patient-login');
+    }
+  }, [navigate]);
+
+  if (!loggedIn) return null;
+
   return (
     <div className="min-h-screen bg-white">
       <Navigation />

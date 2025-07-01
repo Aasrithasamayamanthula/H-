@@ -1,4 +1,3 @@
-
 import Navigation from '@/components/Navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -9,13 +8,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
-      
       {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <section className="pt-24 pb-12 px-2 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <motion.h1 
-              className="text-4xl md:text-6xl font-bold text-slate-800 mb-6"
+              className="text-3xl sm:text-4xl md:text-6xl font-bold text-slate-800 mb-6 leading-tight sm:leading-tight md:leading-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -23,9 +21,8 @@ const Index = () => {
               Your Health, Our
               <span className="text-teal-600 block">Priority</span>
             </motion.h1>
-            
             <motion.p 
-              className="text-xl text-slate-600 mb-8 max-w-3xl mx-auto"
+              className="text-base sm:text-xl text-slate-600 mb-8 max-w-3xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -33,7 +30,6 @@ const Index = () => {
               Experience world-class healthcare with our comprehensive medical services. 
               From routine check-ups to specialized treatments, we're here for you every step of the way.
             </motion.p>
-            
             <motion.div 
               className="flex flex-col sm:flex-row gap-4 justify-center"
               initial={{ opacity: 0, y: 20 }}
@@ -41,12 +37,12 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               <Link to="/appointments">
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-3 text-lg">
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 text-base sm:text-lg w-full sm:w-auto">
                   Book Appointment
                 </Button>
               </Link>
               <Link to="/doctors">
-                <Button variant="outline" className="border-teal-600 text-teal-600 hover:bg-teal-50 px-8 py-3 text-lg">
+                <Button variant="outline" className="border-teal-600 text-teal-600 hover:bg-teal-50 px-6 py-3 text-base sm:text-lg w-full sm:w-auto">
                   Meet Our Doctors
                 </Button>
               </Link>
@@ -54,20 +50,18 @@ const Index = () => {
           </div>
         </div>
       </section>
-
       {/* Features Section */}
-      <section className="py-16 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-800 mb-4">
+      <section className="py-12 sm:py-16 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">
               Why Choose HealthCare Plus?
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-base sm:text-lg text-slate-600">
               Comprehensive healthcare services designed around your needs
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
             <motion.div 
               className="text-center p-6 bg-white rounded-lg shadow-sm"
               initial={{ opacity: 0, y: 20 }}
@@ -115,20 +109,18 @@ const Index = () => {
           </div>
         </div>
       </section>
-
       {/* Quick Links Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-slate-800 mb-4">
+      <section className="py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4">
               Quick Access
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-base sm:text-lg text-slate-600">
               Everything you need, just a click away
             </p>
           </div>
-          
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <Link to="/appointments" className="group">
               <div className="p-6 bg-white border border-slate-200 rounded-lg hover:shadow-lg transition-shadow">
                 <Calendar className="w-12 h-12 text-teal-600 mb-4 group-hover:scale-110 transition-transform" />

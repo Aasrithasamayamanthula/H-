@@ -88,6 +88,7 @@ const Admin = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [patients, setPatients] = useState<any[]>([]); // Add patients state
   const [loading, setLoading] = useState(true);
   const [isAppointmentSheetOpen, setIsAppointmentSheetOpen] = useState(false);
   const [isPatientSheetOpen, setIsPatientSheetOpen] = useState(false);
@@ -187,10 +188,26 @@ const Admin = () => {
       setLoading(false);
     });
 
+    // Subscribe to patients
+    const patientsQuery = query(
+      collection(db, 'patients'),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribePatients = onSnapshot(patientsQuery, (snapshot) => {
+      const patientsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setPatients(patientsData);
+    }, (error) => {
+      console.error('Error fetching patients:', error);
+    });
+
     return () => {
       unsubscribeAppointments();
       unsubscribeMessages();
       unsubscribeDoctors();
+      unsubscribePatients();
     };
   }, []);
 
@@ -402,11 +419,11 @@ Customer Service Team
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Hospital Admin Dashboard</h1>
-            <p className="text-slate-600">Manage your hospital operations</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Hospital Admin Dashboard</h1>
+            <p className="text-slate-600 text-sm">Manage your hospital operations</p>
           </div>
           <Button variant="outline" asChild>
             <a href="/">Back to Website</a>
@@ -414,15 +431,15 @@ Customer Service Team
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex flex-col sm:flex-row">
         {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-80px)]">
-          <nav className="p-4 space-y-2">
+        <aside className="w-full sm:w-64 bg-white border-b sm:border-b-0 sm:border-r border-gray-200 min-h-[56px] sm:min-h-[calc(100vh-80px)]">
+          <nav className="flex sm:block overflow-x-auto p-2 sm:p-4 space-x-2 sm:space-x-0 sm:space-y-2">
             {tabs.map((tab) => (
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-colors ${
+                className={`flex-1 sm:w-full flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 rounded-lg text-left transition-colors min-w-[120px] sm:min-w-0 max-w-xs sm:max-w-none text-xs sm:text-base ${
                   activeTab === tab.id
                     ? 'bg-teal-100 text-teal-700 border border-teal-200'
                     : 'text-slate-600 hover:bg-slate-100'
@@ -430,8 +447,8 @@ Customer Service Team
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <div className="flex items-center space-x-3">
-                  <tab.icon className="w-5 h-5" />
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <tab.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="font-medium">{tab.label}</span>
                 </div>
                 {tab.id === 'appointments' && pendingAppointments.length > 0 && (
@@ -450,7 +467,7 @@ Customer Service Team
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-2 sm:p-6">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
@@ -640,6 +657,7 @@ Customer Service Team
                                   variant={appointment.status === 'pending' ? 'default' : 'outline'}
                                   onClick={() => updateAppointmentStatus(appointment.id, 'pending')}
                                   className={appointment.status === 'pending' ? 'bg-orange-500 hover:bg-orange-600' : ''}
+
                                 >
                                   <Clock className="w-4 h-4 mr-1" />
                                   Pending
@@ -649,6 +667,7 @@ Customer Service Team
                                   variant={appointment.status === 'confirmed' ? 'default' : 'outline'}
                                   onClick={() => updateAppointmentStatus(appointment.id, 'confirmed')}
                                   className={appointment.status === 'confirmed' ? 'bg-green-500 hover:bg-green-600' : ''}
+
                                 >
                                   <Check className="w-4 h-4 mr-1" />
                                   Confirmed
@@ -788,127 +807,45 @@ Customer Service Team
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-slate-800">Patient Management</h2>
-                    <Sheet open={isPatientSheetOpen} onOpenChange={setIsPatientSheetOpen}>
-                      <SheetTrigger asChild>
-                        <Button className="bg-teal-600 hover:bg-teal-700">Add New Patient</Button>
-                      </SheetTrigger>
-                      <SheetContent className="w-[400px] sm:w-[540px]">
-                        <SheetHeader>
-                          <SheetTitle>Add New Patient</SheetTitle>
-                          <SheetDescription>
-                            Fill in the patient's information to add them to the system.
-                          </SheetDescription>
-                        </SheetHeader>
-                        <ScrollArea className="h-[calc(100vh-120px)] pr-4">
-                          <Form {...patientForm}>
-                            <form onSubmit={patientForm.handleSubmit(onPatientSubmit)} className="space-y-4 mt-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                  control={patientForm.control}
-                                  name="firstName"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>First Name</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="Enter first name" {...field} />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={patientForm.control}
-                                  name="lastName"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Last Name</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="Enter last name" {...field} />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                              <FormField
-                                control={patientForm.control}
-                                name="email"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Email</FormLabel>
-                                    <FormControl>
-                                      <Input type="email" placeholder="Enter email" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={patientForm.control}
-                                name="phone"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Phone Number</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Enter phone number" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={patientForm.control}
-                                name="dateOfBirth"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Date of Birth</FormLabel>
-                                    <FormControl>
-                                      <Input type="date" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={patientForm.control}
-                                name="address"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Address</FormLabel>
-                                    <FormControl>
-                                      <Textarea placeholder="Enter full address" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={patientForm.control}
-                                name="emergencyContact"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Emergency Contact</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Enter emergency contact number" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <Button type="submit" className="w-full">Add Patient</Button>
-                            </form>
-                          </Form>
-                        </ScrollArea>
-                      </SheetContent>
-                    </Sheet>
                   </div>
                   <Card>
                     <CardHeader>
-                      <CardTitle>Patient Records</CardTitle>
-                      <CardDescription>Manage patient profiles and medical history</CardDescription>
+                      <CardTitle>Patients List</CardTitle>
+                      <CardDescription>All registered patients</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-slate-600">Patient management interface will be implemented here.</p>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
+                          <thead>
+                            <tr>
+                              <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                              <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                              <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                              <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">DOB</th>
+                              <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Address</th>
+                              <th className="px-2 sm:px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Emergency Contact</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-100">
+                            {patients.length === 0 ? (
+                              <tr>
+                                <td colSpan={6} className="text-center py-6 text-gray-400">No patients found.</td>
+                              </tr>
+                            ) : (
+                              patients.map((patient) => (
+                                <tr key={patient.id}>
+                                  <td className="px-2 sm:px-4 py-2 whitespace-nowrap">{patient.firstName} {patient.lastName}</td>
+                                  <td className="px-2 sm:px-4 py-2 whitespace-nowrap">{patient.email}</td>
+                                  <td className="px-2 sm:px-4 py-2 whitespace-nowrap">{patient.phone}</td>
+                                  <td className="px-2 sm:px-4 py-2 whitespace-nowrap">{patient.dateOfBirth}</td>
+                                  <td className="px-2 sm:px-4 py-2 whitespace-nowrap hidden md:table-cell">{patient.address}</td>
+                                  <td className="px-2 sm:px-4 py-2 whitespace-nowrap hidden md:table-cell">{patient.emergencyContact}</td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>

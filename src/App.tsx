@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import PatientPortal from "./pages/PatientPortal";
 import DoctorProfile from "./pages/DoctorProfile";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import PatientLogin from "./pages/PatientLogin";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +30,7 @@ const App = () => (
           <Route path="/health-records" element={<HealthRecordsPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/patient-portal" element={<PatientPortal />} />
+          <Route path="/patient-login" element={<PatientLogin />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
